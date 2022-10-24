@@ -81,4 +81,7 @@ docker run -d -v /etc/xray:/etc/xray --network macnet --ip 192.168.1.254 --privi
 # 加入新的默认路由(修改网关), 即可实现透明代理
 ip route add default via 192.168.1.254 dev br0
 ```
-
+## References
+1. [Project X](https://xtls.github.io/)
+2. [Xray-core](https://github.com/XTLS/Xray-core)
+3. [Xray-example](https://github.com/XTLS/Xray-examples) 
