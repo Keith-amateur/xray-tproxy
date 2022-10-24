@@ -1,4 +1,4 @@
-# docke旁路由 实现透明代理
+# docker旁路由 实现透明代理
 ## Requirements
 - /etc/xray/outbound.json  
 - macvlan network 
