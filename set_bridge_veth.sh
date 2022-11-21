@@ -1,5 +1,5 @@
 #! /bin/bash
-set -eu
+set -euo pipefail
 
 if [[ $(id -u) -ne 0 ]]; then
 	echo "Please run the script as root or use sudo"

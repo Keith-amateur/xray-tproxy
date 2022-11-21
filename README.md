@@ -32,11 +32,12 @@
 ```
 2. macvlan network
 ```bash
+ip link set dev eth0 promisc on
 docker network create -d macvlan --subnet=192.168.1.0/24 --gateway=192.168.1.1 -o parent=eth0 macnet
 -------------------------------------------------------------------------------------------------
 注意事项:
 1. subnet gateway parent网卡 请根据实际的网络情况更改
-2. parent网卡 eth0 必须支持且开启promisc混杂模式 # ip link set dev eth0 promisc on
+2. parent网卡 eth0 必须支持且开启promisc混杂模式 
 ```
 
 ## Run
@@ -81,7 +82,34 @@ docker run -d -v /etc/xray:/etc/xray --network macnet --ip 192.168.1.254 --privi
 # 加入新的默认路由(修改网关), 即可实现透明代理
 ip route add default via 192.168.1.254 dev br0
 ```
+## 通过使用两张macvlan网卡协助宿主机使用代理
+- docker macvlan
+```bash
+# eth0 为物理网卡
+docker network create -d macvlan --subnet=192.168.1.0/24 --gateway=192.168.1.1 -o parent=eth0 mac_proxy
+docker run -d -v /etc/xray:/etc/xray --network mac_proxy --ip 192.168.1.254 --privileged keithdockerhub/xray-tproxy:latest
+```
+- ip macvlan
+```bash
+ip link add link eth0 dev mac_net type macvlan mode bridge
+ip addr flush dev eth0
+
+# static(recommanded)
+ip addr add 192.168.1.100/24 dev mac_net
+ip link set dev mac_net up	
+ip route add default via 192.168.1.254 dev mac_net # ip route add default via 192.168.1.1 dev mac_net metric 100
+# dhcp
+ip link set dev mac_net up
+dhclient mac_net or dhcpcd -q -w mac_net
+ip route del default via 192.168.1.1 dev mac_net
+ip route add default via 192.168.1.254 dev mac_net
+```
+在macvlan的bridge模式下, 同一父接口的子接口之间可互相通信。
+- mac_proxy 作为代理转发的接口
+- mac_net 作为上网的接口
+---
 ## References
 1. [Project X](https://xtls.github.io/)
 2. [Xray-core](https://github.com/XTLS/Xray-core)
 3. [Xray-example](https://github.com/XTLS/Xray-examples) 
+4. [macvlan](https://icloudnative.io/posts/netwnetwork-virtualization-macvlan/) 
